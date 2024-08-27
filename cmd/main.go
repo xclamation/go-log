@@ -11,6 +11,7 @@ import (
 func main() {
 	var startEnable bool = true
 	var startOutput io.Writer = os.Stdout
+
 	// Do not use the same names for variables and imported packages.
 	// 1) Renaming the variable: log, appLog, ...
 	// - when the variable name isn't critical for understanding
