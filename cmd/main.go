@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github/xclamation/logger-project/logger"
+	"github/xclamation/go-log/log"
 	"io"
 	"os"
 	"time"
@@ -19,8 +19,8 @@ func main() {
 	// - when the variable name is critical or the package name isn't used often
 	// 3) Contextual Naming: requestLogger, errorLogger, ...
 	// - when the context of the logger is important for understanding the code
-	log := logger.NewLogger(logger.WithEnabled(startEnable),
-		logger.WithOutput(startOutput))
+	log := log.NewLogger(log.WithEnabled(startEnable),
+		log.WithOutput(startOutput))
 	// We can use var log *logger.Logger = ..., but this is not a common approach.
 	// Also we can create type Logger = logger.Logger outside main function
 	// to more short name but NOT RECOMENDED.
