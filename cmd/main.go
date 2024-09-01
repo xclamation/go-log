@@ -133,8 +133,8 @@ func main() {
 		age := 22
 		log.Logf("The name was %q, %d years old.\n", name, age)
 	}
+
 	lg := log.NewLogger()
-	//lg.Begin().Prefix()
 	lg.Begin()
 	lg.Log("Hey!\n")
 	defer lg.End()

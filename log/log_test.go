@@ -13,11 +13,11 @@ import (
 func TestNewLogger_Default(t *testing.T) {
 	logger := NewLogger()
 
-	if !logger.enabled {
+	if !logger.IsEnabled() {
 		t.Errorf("Expected  logger to be enabled by default")
 	}
 
-	if logger.output != os.Stdout {
+	if logger.GetOutput() != os.Stdout {
 		t.Errorf("Expected default output to be os.Stdout")
 	}
 }
@@ -26,13 +26,13 @@ func TestNewLogger_Default(t *testing.T) {
 func TestNewLogger_WithEnabled(t *testing.T) {
 	logger := NewLogger(WithEnabled(false))
 
-	if logger.enabled {
+	if logger.IsEnabled() {
 		t.Errorf("Expected logger to be disabled")
 	}
 
-	logger.enabled = true
+	logger.Enable()
 
-	if !logger.enabled {
+	if !logger.IsEnabled() {
 		t.Error("Expected logger to be enabled")
 	}
 }
@@ -42,15 +42,16 @@ func TestNewLogger_WithOutput(t *testing.T) {
 	var writer io.Writer = &output
 	logger := NewLogger(WithOutput(writer))
 
-	if logger.output != writer {
+	if logger.GetOutput() != writer {
 		t.Errorf("Expected logger to be a \"%T\"", writer)
 	}
 
 	var buf bytes.Buffer
 	writer = &buf
-	logger.output = writer
-	if logger.output != writer {
-		t.Errorf("Expected logger to be a \"%T\", got \"%T\"", writer, logger.output)
+	logger.SetOutput(writer)
+	logOutput := logger.GetOutput()
+	if logOutput != writer {
+		t.Errorf("Expected logger to be a \"%T\", got \"%T\"", writer, logOutput)
 	}
 }
 
@@ -141,21 +142,24 @@ func TestSetOutput(t *testing.T) {
 
 func TestPrefix(t *testing.T) {
 	prefixedLogger := NewLogger(WithPrefix("Z", "O", "V"))
-	initialPrefix := "Z: O: V: "
-	if prefixedLogger.prefix.String() != initialPrefix {
-		t.Errorf("Expected initial prefix to be %q, got %q", initialPrefix, prefixedLogger.prefix.String())
+	initialPrefix := "TestPrefix: Z: O: V: "
+	logPrefix := prefixedLogger.GetPrefix()
+	if logPrefix != initialPrefix {
+		t.Errorf("Expected initial prefix to be %q, got %q", initialPrefix, logPrefix)
 	}
 
 	prefixedLogger.Prefix("apple", "banana", "cherry")
-	expectedPrefix := "Z: O: V: apple: banana: cherry: "
-	if prefixedLogger.prefix.String() != expectedPrefix {
-		t.Errorf("Expected initial prefix to be %q, got %q", expectedPrefix, prefixedLogger.prefix.String())
+	expectedPrefix := "TestPrefix: Z: O: V: apple: banana: cherry: "
+	logPrefix = prefixedLogger.GetPrefix()
+	if logPrefix != expectedPrefix {
+		t.Errorf("Expected initial prefix to be %q, got %q", expectedPrefix, logPrefix)
 	}
 
 	prefixedLogger.Prefix("date")
-	expectedPrefix = "Z: O: V: apple: banana: cherry: date: "
-	if prefixedLogger.prefix.String() != expectedPrefix {
-		t.Errorf("Expected initial prefix to be %q, got %q", expectedPrefix, prefixedLogger.prefix.String())
+	expectedPrefix = "TestPrefix: Z: O: V: apple: banana: cherry: date: "
+	logPrefix = prefixedLogger.GetPrefix()
+	if logPrefix != expectedPrefix {
+		t.Errorf("Expected initial prefix to be %q, got %q", expectedPrefix, logPrefix)
 	}
 }
 
