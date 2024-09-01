@@ -4,12 +4,17 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
+	"strings"
 	"time"
 )
 
 type Logger struct {
-	enabled bool      // Unexported fields so other can't change them
-	output  io.Writer // in the way that I did not intend
+	enabled   bool      // Unexported fields so other can't change them
+	output    io.Writer // In the way that I did not intend
+	prefix    strings.Builder
+	funcName  string // string.Builder is not necessary because we do not need to modify funcName dinamically
+	startTime time.Time
 }
 
 func NewLogger(opts ...Option) *Logger {
@@ -20,6 +25,10 @@ func NewLogger(opts ...Option) *Logger {
 		enabled: defaultEnabled,
 		output:  defaultOutput,
 	}
+
+	l.captureFuncName()
+	l.prefix.WriteString(l.funcName)
+	l.prefix.WriteString(": ")
 
 	// Apply options
 	// It's more convenient way to initialize fields of the instance
@@ -51,26 +60,53 @@ func WithOutput(output io.Writer) Option {
 	}
 }
 
+func WithPrefix(newprefix ...string) Option {
+	return func(l *Logger) {
+		for _, s := range newprefix {
+			l.prefix.WriteString(s)
+			l.prefix.WriteString(": ")
+		}
+	}
+}
+
 func (l *Logger) Log(a ...interface{}) {
 	if l.enabled {
-		fmt.Fprintln(l.output, a...)
+		fmt.Fprint(l.output, l.prefix.String())
+		fmt.Fprint(l.output, a...)
 	}
 }
 
 func (l *Logger) Logf(format string, a ...interface{}) {
 	if l.enabled {
+		fmt.Fprint(l.output, l.prefix.String())
 		fmt.Fprintf(l.output, format, a...)
 	}
 }
 
-func (l *Logger) Begin() {
-	l.Log("BEGIN")
-	l.Log("Execution started at:", time.Now().Format(time.RFC3339))
+func (l *Logger) Begin(newprefix ...string) *Logger {
+	l.captureFuncName()
+	if l.funcName != "" {
+		l.prefix.WriteString(l.funcName)
+		l.prefix.WriteString(": ")
+	}
+	for _, s := range newprefix {
+		l.prefix.WriteString(s)
+		l.prefix.WriteString(": ")
+	}
+
+	l.startTime = time.Now()
+	l.Log("BEGIN\n")
+	l.Logf("Execution started at: %v\n", l.startTime.Format(time.RFC3339))
+
+	return l
 }
 
 func (l *Logger) End() {
-	l.Log("END")
-	l.Log("Execution ended at:", time.Now().Format(time.RFC3339))
+	endTime := time.Now()
+	l.Log("END\n")
+	l.Logf("Execution ended at: %v", endTime.Format(time.RFC3339))
+	duration := endTime.Sub(l.startTime)
+	l.Logf("Execution duration: %v\n", duration)
 }
 
 func (l *Logger) Enable() {
@@ -83,4 +119,26 @@ func (l *Logger) Disable() {
 
 func (l *Logger) SetOutput(output io.Writer) {
 	l.output = output
+}
+
+// Add prefix to logger
+func (l *Logger) Prefix(newprefix ...string) {
+	for _, s := range newprefix {
+		l.prefix.WriteString(s)
+		l.prefix.WriteString(": ")
+	}
+}
+
+// captureFuncName captures the name of the function from which Begin() was called.
+func (l *Logger) captureFuncName() {
+	pc, _, _, ok := runtime.Caller(2) // 2 levels up to get the calling function
+	if ok {
+		fn := runtime.FuncForPC(pc) // pc stands for program counter
+		fullFuncName := fn.Name()
+		// Extract the last part after the last "/"
+		parts := strings.Split(fullFuncName, ".")
+		l.funcName = parts[len(parts)-1] // Instead of packageName.funcName get only funcName
+		//return l.funcName
+	}
+	//return ""
 }

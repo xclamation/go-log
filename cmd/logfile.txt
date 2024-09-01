@@ -1,5 +1,6 @@
 This will be logged to the file.
 BEGIN
-Execution started at: 2024-08-26T19:52:05+03:00
+Execution started at: 2024-08-31T17:23:20+03:00
+The name was "Ramil", 22 years old.
 END
-Execution ended at: 2024-08-26T19:52:05+03:00
+Execution ended at: 2024-08-31T17:23:20+03:00
