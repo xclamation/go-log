@@ -21,29 +21,29 @@ func main() {
 		// - when the variable name is critical or the package name isn't used often
 		// 3) Contextual Naming: requestLogger, errorLogger, ...
 		// - when the context of the logger is important for understanding the code
-		log := log.NewLogger(log.WithEnabled(startEnable),
+		lg := log.NewLogger(log.WithEnabled(startEnable),
 			log.WithOutput(startOutput))
 		// We can use var log *logger.Logger = ..., but this is not a common approach.
 		// Also we can create type Logger = logger.Logger outside main function
 		// to more short name but NOT RECOMENDED.
 
 		// Log custom text
-		log.Log("Custom log message in console: Hello World!\n")
+		lg.Log("Custom log message in console: Hello World!\n")
 
 		// Mark the beginnging of an execution block
-		log.Begin()
+		lg.Begin()
 
 		// Simulate som processing
 		time.Sleep(2 * time.Second)
 
 		//Mark the end of an execution block
-		log.End()
+		lg.End()
 
 		//Disable logging
-		log.Disable()
+		lg.Disable()
 
 		// This message won't be logged since logging is disabled
-		log.Log("This won't be logged.")
+		lg.Log("This won't be logged.")
 
 		// Change the output to a file
 		file, err := os.Create("logfile.txt")
@@ -119,23 +119,25 @@ func main() {
 		// Deferred functions may read and assign to the returning function’s named return values.
 
 		// Set new output and enable logging
-		log.SetOutput(file)
-		log.Enable()
+		lg.SetOutput(file)
+		lg.Enable()
 
 		// Log to the file
 		// The file will be rewritten
-		log.Log("This will be logged to the file.\n")
-		log.Begin()
-		defer log.End()
+		lg.Log("This will be logged to the file.\n")
+		lg.Begin()
+		defer lg.End()
 
 		// Usage of Logf
 		name := "Ramil"
 		age := 22
-		log.Logf("The name was %q, %d years old.\n", name, age)
+		lg.Logf("The name was %q, %d years old.\n", name, age)
 	}
 
 	lg := log.NewLogger()
-	lg.Begin()
+	//lg.Begin()
 	lg.Log("Hey!\n")
+	name := "Ram"
+	lg.Alertf("Hello, %s\n", name)
 	defer lg.End()
 }
