@@ -2,6 +2,8 @@ package log
 
 import (
 	"fmt"
+	"github/xclamation/go-log/arg"
+	"github/xclamation/go-log/loglevel"
 	"io"
 	"os"
 	"runtime"
@@ -46,7 +48,7 @@ type Logger interface {
 
 	End()
 
-	Level(uint8) Logger
+	SetLevel(uint8) Logger
 }
 
 // logger struct implementing the Logger interface
@@ -62,12 +64,12 @@ type logger struct {
 func NewLogger(opts ...Option) Logger {
 	var defaultOutput io.Writer = os.Stdout
 	const defaultEnabled bool = true
-	const defaultLevel uint8 = 6
+	var initLevel uint8 = arg.GetInitLevel()
 
 	l := &logger{
 		enabled: defaultEnabled,
 		output:  defaultOutput,
-		level:   defaultLevel,
+		level:   initLevel,
 	}
 
 	// If can uncomma that if we want to have funcName when NewLogger() is used
@@ -115,12 +117,13 @@ func WithPrefix(newprefix ...string) Option {
 }
 
 func (l *logger) Begin(newprefix ...string) Logger {
-	l.captureFuncName()
-
-	if l.funcName != "" {
+	funcName := l.captureFuncName()
+	if l.funcName != funcName {
+		l.funcName = funcName
 		l.prefix.WriteString(l.funcName)
 		l.prefix.WriteString(": ")
 	}
+
 	for _, s := range newprefix {
 		l.prefix.WriteString(s)
 		l.prefix.WriteString(": ")
@@ -161,7 +164,8 @@ func (l *logger) GetOutput() io.Writer {
 	return l.output
 }
 
-func (l *logger) Level(level uint8) Logger {
+// With flaged level setting may be this function is not neccessary or should be removed
+func (l *logger) SetLevel(level uint8) Logger {
 	l.level = level
 	return l
 }
@@ -182,92 +186,134 @@ func (l *logger) logfMessage(format string, a ...interface{}) {
 
 // Alert logs an alert-level message
 func (l *logger) Alert(a ...interface{}) {
-	if l.level >= 1 {
-		l.logMessage(append([]interface{}{"ALERT: "}, a...)...)
+	message := "ALERT: "
+	if l.level >= loglevel.LEVEL_1 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_1)
 	}
 }
 
 func (l *logger) Alertf(format string, a ...interface{}) {
-	if l.level >= 1 {
-		l.logfMessage(format, append([]interface{}{"ALERT: "}, a...)...)
+	message := "ALERT: "
+	if l.level >= loglevel.LEVEL_1 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_1)
 	}
 }
 
 // Error logs an error-level message.
 func (l *logger) Error(a ...interface{}) {
-	if l.level >= 1 {
-		l.logMessage(append([]interface{}{"ERROR: "}, a...)...)
+	message := "ERROR: "
+	if l.level >= loglevel.LEVEL_1 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_1)
 	}
 }
 
 func (l *logger) Errorf(format string, a ...interface{}) {
-	if l.level >= 1 {
-		l.logfMessage(format, append([]interface{}{"ERROR: "}, a...)...)
+	message := "ERROR: "
+	if l.level >= loglevel.LEVEL_1 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_1)
 	}
 }
 
 // Warn logs a warning-level message.
 func (l *logger) Warn(a ...interface{}) {
-	if l.level >= 2 {
-		l.logMessage(append([]interface{}{"WARN: "}, a...)...)
+	message := "WARN: "
+	if l.level >= loglevel.LEVEL_2 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_2)
 	}
 }
 
 func (l *logger) Warnf(format string, a ...interface{}) {
-	if l.level >= 2 {
-		l.logfMessage(format, append([]interface{}{"WARN: "}, a...)...)
+	message := "WARN: "
+	if l.level >= loglevel.LEVEL_2 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_2)
 	}
 }
 
 // Highlight logs a highlight-level message.
 func (l *logger) Highlight(a ...interface{}) {
-	if l.level >= 3 {
-		l.logMessage(append([]interface{}{"HIGHLIGHT: "}, a...)...)
+	message := "HIGHLIGHT: "
+	if l.level >= loglevel.LEVEL_3 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_3)
 	}
 }
 
 func (l *logger) Highlightf(format string, a ...interface{}) {
-	if l.level >= 3 {
-		l.logfMessage(format, append([]interface{}{"HIGHLIGHT: "}, a...)...)
+	message := "HIGHLIGHT: "
+	if l.level >= loglevel.LEVEL_3 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_3)
 	}
 }
 
 // Inform logs an information-level message.
 func (l *logger) Inform(a ...interface{}) {
-	if l.level >= 4 {
-		l.logMessage(append([]interface{}{"INFORM: "}, a...)...)
+	message := "INFORM: "
+	if l.level >= loglevel.LEVEL_4 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_4)
 	}
 }
 
 func (l *logger) Informf(format string, a ...interface{}) {
-	if l.level >= 4 {
-		l.logfMessage(format, append([]interface{}{"INFORM: "}, a...)...)
+	message := "INFORM: "
+	if l.level >= loglevel.LEVEL_4 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_4)
 	}
 }
 
 // Log logs a general-level message.
 func (l *logger) Log(a ...interface{}) {
-	if l.level >= 5 {
-		l.logMessage(append([]interface{}{"LOG: "}, a...)...)
+	message := "LOG: "
+	if l.level >= loglevel.LEVEL_5 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_5)
 	}
 }
 
 func (l *logger) Logf(format string, a ...interface{}) {
-	if l.level >= 5 {
-		l.logfMessage(format, append([]interface{}{"LOG: "}, a...)...)
+	message := "LOG: "
+	if l.level >= loglevel.LEVEL_5 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_5)
 	}
 }
 
 // Trace logs a trace-level message.
 func (l *logger) Trace(a ...interface{}) {
-	if l.level >= 6 {
-		l.logMessage(append([]interface{}{"TRACE: "}, a...)...)
+	message := "TRACE: "
+	if l.level >= loglevel.LEVEL_6 {
+		l.logMessage(append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_6)
 	}
 }
 
 func (l *logger) Tracef(format string, a ...interface{}) {
-	if l.level >= 6 {
-		l.logfMessage(format, append([]interface{}{"TRACE: "}, a...)...)
+	message := "TRACE: "
+	if l.level >= loglevel.LEVEL_6 {
+		l.logfMessage("%s"+format, append([]interface{}{message}, a...)...)
+	} else {
+		fmt.Printf("Logger has %d access level, level %d reqiured\n", l.level, loglevel.LEVEL_6)
 	}
 }
 
@@ -286,15 +332,15 @@ func (l *logger) GetPrefix() string {
 }
 
 // captureFuncName captures the name of the function from which Begin() was called.
-func (l *logger) captureFuncName() {
+func (l *logger) captureFuncName() string {
 	pc, _, _, ok := runtime.Caller(2) // 2 levels up to get the calling function
 	if ok {
 		fn := runtime.FuncForPC(pc) // pc stands for program counter
 		fullFuncName := fn.Name()
 		// Extract the last part after the last "/"
 		parts := strings.Split(fullFuncName, ".")
-		l.funcName = parts[len(parts)-1] // Instead of packageName.funcName get only funcName
-		//return l.funcName
+		funcName := parts[len(parts)-1] // Instead of packageName.funcName get only funcName
+		return funcName
 	}
-	//return ""
+	return ""
 }

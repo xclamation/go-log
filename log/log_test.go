@@ -3,6 +3,7 @@ package log
 import (
 	"bytes"
 	"fmt"
+	"github/xclamation/go-log/loglevel"
 	"io"
 	"os"
 	"strings"
@@ -160,6 +161,46 @@ func TestPrefix(t *testing.T) {
 	logPrefix = prefixedLogger.GetPrefix()
 	if logPrefix != expectedPrefix {
 		t.Errorf("Expected initial prefix to be %q, got %q", expectedPrefix, logPrefix)
+	}
+}
+
+func TestSetLevel(t *testing.T) {
+	var output strings.Builder
+	var writer io.Writer = &output
+	l := NewLogger(WithOutput(writer))
+	var expectedOutput strings.Builder
+
+	message := "Test %s message"
+
+	methods := map[string]struct {
+		method func(string, ...interface{})
+		msg    string
+		level  uint8
+	}{
+		"Alert":     {l.Alertf, message + "\n", loglevel.LEVEL_1},
+		"Error":     {l.Errorf, message + "\n", loglevel.LEVEL_1},
+		"Warn":      {l.Warnf, message + "\n", loglevel.LEVEL_2},
+		"Highlight": {l.Highlightf, message + "\n", loglevel.LEVEL_3},
+		"Inform":    {l.Informf, message + "\n", loglevel.LEVEL_4},
+		"Log":       {l.Logf, message + "\n", loglevel.LEVEL_5},
+		"Trace":     {l.Tracef, message + "\n", loglevel.LEVEL_6},
+	}
+
+	for lev := loglevel.LEVEL_0; lev <= loglevel.LEVEL_6; lev++ {
+		output.Reset()
+		expectedOutput.Reset()
+		l.SetLevel(lev)
+
+		for name, entry := range methods {
+			entry.method(entry.msg, name)
+			if entry.level <= lev {
+				expectedOutput.WriteString(fmt.Sprintf(strings.ToUpper(name)+": "+entry.msg, name))
+			}
+		}
+
+		if output.String() != expectedOutput.String() {
+			t.Errorf("Expected output %q at level %d, got %q", expectedOutput.String(), lev, output.String())
+		}
 	}
 }
 
